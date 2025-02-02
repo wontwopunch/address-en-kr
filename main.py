@@ -1,14 +1,10 @@
 import sys
 import traceback
-import requests
 import pandas as pd
 import re
+from deep_translator import GoogleTranslator
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QFileDialog, QLabel, QTableWidget, \
     QTableWidgetItem, QMessageBox
-
-# 📌 구글 지오코딩 API 키 설정
-GOOGLE_API_KEY = "AIzaSyCkUxOGK_wFz9CBjf3j7NQR7BzO6qjSqAQ"
-
 
 # 📌 핸드폰 번호를 010-xxxx-xxxx 형식으로 변환하는 함수
 def format_phone_number(phone):
@@ -27,53 +23,30 @@ def format_phone_number(phone):
     return phone  # 변환 실패 시 원본 반환
 
 
-# 📌 대한민국 제거 및 주소 정리 함수
-def clean_address(address):
-    address = address.replace("대한민국 ", "").strip()
-    address = re.sub(r'\s+', ' ', address)
-    return address
-
-
-# 📌 구글 API를 이용한 주소 변환
-def get_korean_address_google(address):
-    url = f"https://maps.googleapis.com/maps/api/geocode/json?address={address}&key={GOOGLE_API_KEY}&language=ko"
-    response = requests.get(url)
-    result = response.json()
-    print("구글 API 응답:", result)  # ✅ 응답 출력 (디버깅용)
-
-    if "results" in result and result["results"]:
-        formatted_address = result["results"][0]["formatted_address"]
-        return clean_address(formatted_address)
-
-    return "변환 실패"
+# 📌 영문 주소를 한글 발음으로 변환
+def translate_english_to_korean(address):
+    try:
+        translated = GoogleTranslator(source='en', target='ko').translate(address)
+        return translated
+    except Exception as e:
+        print(f"번역 오류 발생: {e}")
+        traceback.print_exc()
+        return address  # 번역 실패 시 원본 유지
 
 
 # 📌 영어와 한글 주소 분리 및 변환 후 병합
 def separate_and_convert_address(address):
-    parts = address.split()
-    english_part = []
-    korean_part = []
+    try:
+        if re.search(r'[a-zA-Z]', address):  # ✅ 영문 포함된 경우
+            translated_address = translate_english_to_korean(address)
+            return translated_address
 
-    for part in parts:
-        if re.search(r'[a-zA-Z]', part):
-            english_part.append(part)
-        else:
-            korean_part.append(part)
+        return address  # ✅ 한글 주소는 그대로 유지
 
-    if english_part:
-        converted_address = get_korean_address_google(' '.join(english_part))  # 영어 주소 변환
-        if converted_address != "변환 실패":
-            # 중복되는 지역 정보를 제거하고 병합
-            converted_main = converted_address.split()
-            combined_address = []
-
-            for part in converted_main:
-                if part not in korean_part:
-                    combined_address.append(part)
-
-            combined_address.extend(korean_part)
-            return re.sub(r'\s+', ' ', ' '.join(combined_address))  # ✅ 공백 정리
-    return address  # 변환 실패 시 원본 유지
+    except Exception as e:
+        print(f"주소 변환 중 오류 발생: {e}")
+        traceback.print_exc()
+        return address
 
 
 # PyQt GUI 생성
