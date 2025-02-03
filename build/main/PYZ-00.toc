@@ -3246,7 +3246,7 @@
    'C:\\Users\\82105\\AppData\\Local\\Programs\\Python\\Python39\\lib\\typing.py',
    'PYMODULE'),
   ('typing_extensions',
-   'C:\\Users\\82105\\workspace\\xlsx2\\venv\\lib\\site-packages\\setuptools\\_vendor\\typing_extensions.py',
+   'C:\\Users\\82105\\workspace\\xlsx2\\venv\\lib\\site-packages\\typing_extensions.py',
    'PYMODULE'),
   ('unittest',
    'C:\\Users\\82105\\AppData\\Local\\Programs\\Python\\Python39\\lib\\unittest\\__init__.py',
